@@ -35,16 +35,18 @@ def parseTimetable_o(timetable):
     saturdays = []
     sundays = []
     for line1 in timetable.find_all("tr"):
-        line = line1.text.replace('\n', ' ')
-        if (line.find(":") != -1):
-            departures = re.findall(r"\d{2}:\d{2}", line)
+        departures = []
+        for line2 in line1.find_all("td"):
+            departures.append(line2.text.replace('\n', ' ')[1:-1])
+        print(departures)
+        if (len(departures) != 0):
             if departures[0] != ' ':
                 workdays.append(departures[0])
             if len(departures) >= 2:
                 saturdays.append(departures[1])
             if len(departures) == 3:
                 sundays.append(departures[2])
-        if line.replace(' ', '').isalpha():
+        if (len(departures) == 0):
             workdays.append("sep")
             saturdays.append("sep")
             sundays.append("sep")
