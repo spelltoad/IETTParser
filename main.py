@@ -11,19 +11,17 @@ def parseTimetable(timetable):
         departures = []
         for line2 in line1.find_all("td"):
             departures.append(line2.text.replace('\n', ''))
-        print(departures)
         if (len(departures) != 0):
             if departures[0] != ' ' and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
                 workdays.append(departures[0][:-1])
             if len(departures) >= 2 and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
-                saturdays.append(departures[1])
+                saturdays.append(departures[1][:-1])
             if len(departures) == 3 and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
-                sundays.append(departures[2])
+                sundays.append(departures[2][:-1])
         if (len(departures) == 0):
             workdays.append("sep")
             saturdays.append("sep")
             sundays.append("sep")
-    print(workdays)
     return (workdays, saturdays, sundays)
 
 def parseTimetable_o(timetable):
