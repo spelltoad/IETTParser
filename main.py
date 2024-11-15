@@ -8,26 +8,22 @@ def parseTimetable(timetable):
     saturdays = []
     sundays = []
     for line1 in timetable.find_all("tr"):
-        line = line1.text.replace("\n", "s")
-        if (line.find(":") != -1):
-            departures = line.split(' ')
-            departures.pop()
-            for i, departure in enumerate(departures):
-                match = re.search(r"\d{2}:\d{2}", departure)
-                if match:
-                    departures[i] = match.group()
-                if re.search("ss", departure):
-                    departures.insert(i, ' ')
-            if departures[0] != ' ':
-                workdays.append(departures[0])
-            if len(departures) >= 2:
+        departures = []
+        for line2 in line1.find_all("td"):
+            departures.append(line2.text.replace('\n', ''))
+        print(departures)
+        if (len(departures) != 0):
+            if departures[0] != ' ' and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
+                workdays.append(departures[0][:-1])
+            if len(departures) >= 2 and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
                 saturdays.append(departures[1])
-            if len(departures) == 3:
+            if len(departures) == 3 and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
                 sundays.append(departures[2])
-        if line.replace(' ','').isalpha():
+        if (len(departures) == 0):
             workdays.append("sep")
             saturdays.append("sep")
             sundays.append("sep")
+    print(workdays)
     return (workdays, saturdays, sundays)
 
 def parseTimetable_o(timetable):
@@ -38,7 +34,6 @@ def parseTimetable_o(timetable):
         departures = []
         for line2 in line1.find_all("td"):
             departures.append(line2.text.replace('\n', ' ')[1:-1])
-        print(departures)
         if (len(departures) != 0):
             if departures[0] != ' ':
                 workdays.append(departures[0])
