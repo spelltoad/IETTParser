@@ -14,15 +14,15 @@ def parseTimetable(timetable):
         if (len(departures) != 0):
             if departures[0] != ' ' and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
                 workdays.append(departures[0][:-1])
-            if len(departures) >= 2 and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
+            if departures[1] != '' and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
                 saturdays.append(departures[1][:-1])
-            if len(departures) == 3 and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
+            if departures[2] != '' and re.fullmatch(r"^\d{2}:\d{2} ", departures[0]):
                 sundays.append(departures[2][:-1])
         if (len(departures) == 0):
             workdays.append("sep")
             saturdays.append("sep")
             sundays.append("sep")
-    return (workdays, saturdays, sundays)
+    return(workdays, saturdays, sundays)
 
 def parseTimetable_o(timetable):
     workdays = []
@@ -43,7 +43,7 @@ def parseTimetable_o(timetable):
             workdays.append("sep")
             saturdays.append("sep")
             sundays.append("sep")
-    return (workdays, saturdays, sundays)
+    return(workdays, saturdays, sundays)
 
 
 def printTimetable(name, timetable):
@@ -81,19 +81,37 @@ f.write(name)
 
 soup = BeautifulSoup(page_source, "html.parser")
 
-options = soup.find_all("div", class_="custom-option-item maproute")
-for i, option in enumerate(options):
-    options[i] = (option.text.title() + '\n')
+options_raw = soup.find_all("div", class_="custom-option-item maproute")
+options = []
+for option in options_raw:
+    options.append(option.text.title() + '\n')
 options.insert(1, "All stops reverse\n")
 
 timetable = soup.find("div", class_="departure-times-body")
 main = parseTimetable(timetable)
 
+timetables = [[0]*3]*len(options)
+
+straight = []
+opposite = []
+for day in range(3):
+    split = [list(directions) for key, directions in groupby(main[day], lambda x: x != "sep") if key]
+    if len(split) > 0:
+        straight.append(split[0])
+    else:
+        straight.append([])
+    if len(split) > 1:
+        opposite.append(split[0])
+    else:
+        opposite.append([])
+
+timetables[0] = tuple(straight)
+timetables[1] = tuple(opposite)
+
 timetables_o = soup.find_all("table", class_="line-table")
 for i, timetable in enumerate(timetables_o):
      if i > 1:
-        timetables_o[i] = parseTimetable_o(timetable)
-
+        timetables[i] = (parseTimetable_o(timetable))
 
 stops = soup.find_all("div", class_="line-pass-item")
 i = 0
@@ -102,28 +120,16 @@ for stop in stops:
     stop_data = stop_data.replace("I", "ı")
     dot = stop_data.find(".")
     if stop_data[:2] == "1.":
-        if i == 0:
+        if i <= 1:
             f.write('\n' + options[i])
-            for day in main:
-                split = [list(directions) for key, directions in groupby(day, lambda x: x != "sep") if key]
-                if split:
-                    for j in split[0]:
-                        f.write(j + ' ')
+            for day in range(3):
+                for j in timetables[i][day]:
+                    f.write(j + ' ')
                 f.write('\n')
-        if i == 1 and len([list(directions) for key, directions in groupby(main[0], lambda x: x != "sep") if key]) >=2:
-            f.write('\n' + options[i])
-            for day in main:
-                split = [list(directions) for key, directions in groupby(day, lambda x: x != "sep") if key]
-                if len(split) > 0:
-                    for j in split[1]:
-                        f.write(j + ' ')
-                f.write('\n')
-        if i == 1 and len([list(directions) for key, directions in groupby(main[0], lambda x: x != "sep") if key]) < 2:
-            i += 1
         if i > 1:
             f.write('\n' + options[i])
             for day in range(3):
-                for j in timetables_o[i][day][2:]:
+                for j in timetables[i][day][2:]:
                     f.write(j + ' ')
                 f.write('\n')
         i += 1
