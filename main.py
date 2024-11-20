@@ -101,7 +101,7 @@ for day in range(3):
     else:
         straight.append([])
     if len(split) > 1:
-        opposite.append(split[0])
+        opposite.append(split[1])
     else:
         opposite.append([])
 
